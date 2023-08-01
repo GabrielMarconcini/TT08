@@ -1,0 +1,3 @@
+twoSpeciesFoam.C
+
+EXE = $(FOAM_APPBIN)/twoSpeciesFoam

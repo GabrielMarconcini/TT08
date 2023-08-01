@@ -1,0 +1,330 @@
+functions                              
+{                                     
+	errorNorm_U                           
+	{                                  
+		type coded;                       
+		libs (utilityFunctionObjects);    
+		writeControl writeTime;           
+                                      
+		name analyticalSolution_U;          
+                                      
+		codeWrite                         
+		#{                               
+			const volVectorField& U_find = mesh().lookupObject<volVectorField>("U"); 
+
+			const volVectorField& C = mesh().C(); 
+
+			const surfaceVectorField& Cf = mesh().Cf(); 
+
+			const scalarField& V = mesh().V();   
+
+			volVectorField MMS_diff_U                     
+			(                                
+				IOobject                       
+				(                              
+					"MMS_diff_U",                     
+					mesh().time().timeName(),    
+					mesh(),                      
+					IOobject::NO_READ,           
+					IOobject::AUTO_WRITE         
+				),                             
+				mesh(),                         
+				dimensionedVector ("MMS_diff_U_", dimless, vector(0, 0, 0) ) 
+			);                               
+
+                                    
+
+			forAll(MMS_diff_U, cellI)          
+			{                               
+				// Gets the x component of the current cell 
+				const scalar x = C[cellI].x(); 
+
+				//Gets the y component of the current cell 
+				const scalar y = C[cellI].y(); 
+                                     
+				const scalar tmp0 = M_PI*x; 
+				const scalar tmp1 = M_PI*y; 
+				const scalar solution_1 = 0.5*Foam::sin(tmp0)*Foam::cos(tmp1) + 1; 
+				const scalar solution_2 = -0.5*Foam::sin(tmp1)*Foam::cos(tmp0) + 1; 
+				const scalar solution_3 = 0; 
+                                    
+				const vector solution (solution_1, solution_2, solution_3); 
+                                    
+				MMS_diff_U[cellI] = cmptMag(solution - U_find[cellI]); 
+			}                               
+
+			forAll(MMS_diff_U.boundaryField(), patchI)      
+			{                               
+				forAll(MMS_diff_U.boundaryField()[patchI], faceI)      
+				{                             
+					// Gets the x component of the current cell 
+					const scalar x = Cf.boundaryField()[patchI][faceI].x(); 
+
+					//Gets the y component of the current cell 
+					const scalar y = Cf.boundaryField()[patchI][faceI].y(); 
+                                     
+					const scalar tmp0 = M_PI*x; 
+				const scalar tmp1 = M_PI*y; 
+				const scalar solution_1 = 0.5*Foam::sin(tmp0)*Foam::cos(tmp1) + 1; 
+				const scalar solution_2 = -0.5*Foam::sin(tmp1)*Foam::cos(tmp0) + 1; 
+				const scalar solution_3 = 0; 
+                                  
+					const vector solution (solution_1, solution_2, solution_3); 
+                                  
+					MMS_diff_U.boundaryFieldRef()[patchI][faceI] = cmptMag(solution - U_find.boundaryField()[patchI][faceI]); 
+				}                             
+			}                               
+
+			Info << "For the 1st component of the vector"                               << endl;     
+
+			Info << "L1 norm is: "    << gSum( MMS_diff_U.component(0)*V )/gSum(V)     << endl;     
+
+			Info << "L2 norm is: "    << sqrt( gSum( MMS_diff_U.component(0)*MMS_diff_U.component(0)*V)/gSum(V) ) << endl;     
+
+			Info << "Linf norm is: "  << gMax( MMS_diff_U.component(0).ref() )             << endl;     
+
+
+			Info << "For the 2nd component of the vector"                            << endl;     
+
+			Info << "L1 norm is: "    << gSum( MMS_diff_U.component(1)*V )/gSum(V)     << endl;     
+
+			Info << "L2 norm is: "    << sqrt( gSum( MMS_diff_U.component(1)*MMS_diff_U.component(1)*V)/gSum(V) ) << endl;     
+
+			Info << "Linf norm is: "  << gMax( MMS_diff_U.component(1).ref() )             << endl;     
+
+
+			Info << "For the 3rd component of the vector"                            << endl;     
+
+			Info << "L1 norm is: "    << gSum( MMS_diff_U.component(2)*V )/gSum(V)     << endl;     
+
+			Info << "L2 norm is: "    << sqrt( gSum( MMS_diff_U.component(2)*MMS_diff_U.component(2)*V)/gSum(V) ) << endl;     
+
+			Info << "Linf norm is: "  << gMax( MMS_diff_U.component(2).ref())             << endl;     
+
+                              
+			MMS_diff_U.write();                
+		#};                               
+	}                                   
+                                     
+	errorNorm_p                           
+	{                                  
+		type coded;                       
+		libs (utilityFunctionObjects);    
+		writeControl writeTime;           
+                                      
+		name analyticalSolution_p;          
+                                      
+		codeWrite                         
+		#{                               
+			const volScalarField& p_find = mesh().lookupObject<volScalarField>("p"); 
+
+			const volVectorField& C = mesh().C(); 
+
+			const surfaceVectorField& Cf = mesh().Cf(); 
+
+			const scalarField& V = mesh().V();   
+
+			volScalarField MMS_diff_p                     
+			(                                
+				IOobject                       
+				(                              
+					"MMS_diff_p",                
+					mesh().time().timeName(),    
+					mesh(),                      
+					IOobject::NO_READ,           
+					IOobject::AUTO_WRITE         
+				),                             
+				mesh(),                         
+				dimensionedScalar ("MMS_diff_p_", dimless, 0.0) 
+			);                               
+
+                                    
+
+			forAll(MMS_diff_p, cellI)          
+			{                               
+				// Gets the x component of the current cell 
+				const scalar x = C[cellI].x(); 
+                                    
+				const scalar solution = Foam::cos(M_PI*x) + 1; 
+                                    
+				                                    
+				MMS_diff_p[cellI] = mag(solution - p_find[cellI]); 
+			}                               
+
+			forAll(MMS_diff_p.boundaryField(), patchI)      
+			{                               
+				forAll(MMS_diff_p.boundaryField()[patchI], faceI)      
+				{                             
+					// Gets the x component of the current cell 
+					const scalar x = Cf.boundaryField()[patchI][faceI].x(); 
+                                    
+					const scalar solution = Foam::cos(M_PI*x) + 1; 
+                                  
+					                                  
+					MMS_diff_p.boundaryFieldRef()[patchI][faceI] = mag(solution - p_find.boundaryField()[patchI][faceI]); 
+				}                             
+			}                               
+
+			Info << "L1 norm is: "    << gSum( MMS_diff_p*V )/gSum(V)            << endl;     
+
+			Info << "L2 norm is: "    << sqrt( gSum(MMS_diff_p*MMS_diff_p*V)/gSum(V) )    << endl;     
+
+			Info << "Linf norm is: "  << gMax( MMS_diff_p )                 << endl;     
+
+                              
+			MMS_diff_p.write();                
+		#};                               
+	}                                   
+                                     
+	errorNorm_Y1                           
+	{                                  
+		type coded;                       
+		libs (utilityFunctionObjects);    
+		writeControl writeTime;           
+                                      
+		name analyticalSolution_Y1;          
+                                      
+		codeWrite                         
+		#{                               
+			const volScalarField& Y1_find = mesh().lookupObject<volScalarField>("Y1"); 
+
+			const volVectorField& C = mesh().C(); 
+
+			const surfaceVectorField& Cf = mesh().Cf(); 
+
+			const scalarField& V = mesh().V();   
+
+			volScalarField MMS_diff_Y1                     
+			(                                
+				IOobject                       
+				(                              
+					"MMS_diff_Y1",                
+					mesh().time().timeName(),    
+					mesh(),                      
+					IOobject::NO_READ,           
+					IOobject::AUTO_WRITE         
+				),                             
+				mesh(),                         
+				dimensionedScalar ("MMS_diff_Y1_", dimless, 0.0) 
+			);                               
+
+                                    
+
+			forAll(MMS_diff_Y1, cellI)          
+			{                               
+				// Gets the x component of the current cell 
+				const scalar x = C[cellI].x(); 
+
+				//Gets the y component of the current cell 
+				const scalar y = C[cellI].y(); 
+                                     
+				const scalar solution = Foam::pow(Foam::sin(M_PI*(x + y)), 2); 
+                                    
+				                                    
+				MMS_diff_Y1[cellI] = mag(solution - Y1_find[cellI]); 
+			}                               
+
+			forAll(MMS_diff_Y1.boundaryField(), patchI)      
+			{                               
+				forAll(MMS_diff_Y1.boundaryField()[patchI], faceI)      
+				{                             
+					// Gets the x component of the current cell 
+					const scalar x = Cf.boundaryField()[patchI][faceI].x(); 
+
+					//Gets the y component of the current cell 
+					const scalar y = Cf.boundaryField()[patchI][faceI].y(); 
+                                     
+					const scalar solution = Foam::pow(Foam::sin(M_PI*(x + y)), 2); 
+                                  
+					                                  
+					MMS_diff_Y1.boundaryFieldRef()[patchI][faceI] = mag(solution - Y1_find.boundaryField()[patchI][faceI]); 
+				}                             
+			}                               
+
+			Info << "L1 norm is: "    << gSum( MMS_diff_Y1*V )/gSum(V)            << endl;     
+
+			Info << "L2 norm is: "    << sqrt( gSum(MMS_diff_Y1*MMS_diff_Y1*V)/gSum(V) )    << endl;     
+
+			Info << "Linf norm is: "  << gMax( MMS_diff_Y1 )                 << endl;     
+
+                              
+			MMS_diff_Y1.write();                
+		#};                               
+	}                                   
+                                     
+	errorNorm_Y2                           
+	{                                  
+		type coded;                       
+		libs (utilityFunctionObjects);    
+		writeControl writeTime;           
+                                      
+		name analyticalSolution_Y2;          
+                                      
+		codeWrite                         
+		#{                               
+			const volScalarField& Y2_find = mesh().lookupObject<volScalarField>("Y2"); 
+
+			const volVectorField& C = mesh().C(); 
+
+			const surfaceVectorField& Cf = mesh().Cf(); 
+
+			const scalarField& V = mesh().V();   
+
+			volScalarField MMS_diff_Y2                     
+			(                                
+				IOobject                       
+				(                              
+					"MMS_diff_Y2",                
+					mesh().time().timeName(),    
+					mesh(),                      
+					IOobject::NO_READ,           
+					IOobject::AUTO_WRITE         
+				),                             
+				mesh(),                         
+				dimensionedScalar ("MMS_diff_Y2_", dimless, 0.0) 
+			);                               
+
+                                    
+
+			forAll(MMS_diff_Y2, cellI)          
+			{                               
+				// Gets the x component of the current cell 
+				const scalar x = C[cellI].x(); 
+
+				//Gets the y component of the current cell 
+				const scalar y = C[cellI].y(); 
+                                     
+				const scalar solution = Foam::pow(Foam::cos(M_PI*(x + y)), 2); 
+                                    
+				                                    
+				MMS_diff_Y2[cellI] = mag(solution - Y2_find[cellI]); 
+			}                               
+
+			forAll(MMS_diff_Y2.boundaryField(), patchI)      
+			{                               
+				forAll(MMS_diff_Y2.boundaryField()[patchI], faceI)      
+				{                             
+					// Gets the x component of the current cell 
+					const scalar x = Cf.boundaryField()[patchI][faceI].x(); 
+
+					//Gets the y component of the current cell 
+					const scalar y = Cf.boundaryField()[patchI][faceI].y(); 
+                                     
+					const scalar solution = Foam::pow(Foam::cos(M_PI*(x + y)), 2); 
+                                  
+					                                  
+					MMS_diff_Y2.boundaryFieldRef()[patchI][faceI] = mag(solution - Y2_find.boundaryField()[patchI][faceI]); 
+				}                             
+			}                               
+
+			Info << "L1 norm is: "    << gSum( MMS_diff_Y2*V )/gSum(V)            << endl;     
+
+			Info << "L2 norm is: "    << sqrt( gSum(MMS_diff_Y2*MMS_diff_Y2*V)/gSum(V) )    << endl;     
+
+			Info << "Linf norm is: "  << gMax( MMS_diff_Y2 )                 << endl;     
+
+                              
+			MMS_diff_Y2.write();                
+		#};                               
+	}                                   
+}

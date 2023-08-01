@@ -1,0 +1,200 @@
+/*--------------------------------*- C++ -*----------------------------------*\ 
+| =========                 |                                                |  
+| \      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           | 
+|  \    /   O peration     | Version:  v2012                                 | 
+|   \  /    A nd           | Website:  www.openfoam.com                      | 
+|    \/     M anipulation  |                                                 | 
+\*---------------------------------------------------------------------------*/ 
+FoamFile                                                                        
+{                                                                               
+    version     2.0;                                                            
+    format      ascii;                                                          
+    class       dictionary;                                                     
+    object      fvOptions;                                                      
+}                                                                               
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * // 
+
+momentumSource                                                                            
+{                                                                               
+	type            vectorCodedSource;                                                           
+	selectionMode   all;                                                          
+	fields          (U);                                                         
+                                                                                
+	// Name of the coded source                                                   
+	name            momentumSource_2;                                                           
+                                                                                
+	codeInclude                                                                   
+	#{                                                                            
+		// Info: Include necessary libraries for calculation                        
+	#};                                                                           
+                                                                                
+	codeCorrect                                                                   
+	#{                                                                            
+		// Info: Apply corrections after the equation has been solved               
+	#};                                                                           
+                                                                                
+	codeConstrain                                                                 
+	#{                                                                            
+		// Info: Constrain values before the equation is solved                     
+	#};                                                                           
+
+	codeAddSup                                                                   
+	#{                                                                          
+		// Gets the cell volumes of the mesh                                       
+		const scalarField& V = mesh_.V();                                          
+                                                                               
+		// Gets the vector containing cell center position of the mesh             
+		const volVectorField& C = mesh().C();                                      
+                                                                               
+		// Gets the equation source term                                           
+		vectorField& USource= eqn.source();                                                    
+                                                                             
+		// Loops over each cell in the domain                                      
+		forAll(USource, cellI)                                                         
+		{                                                                         
+			// Gets the x component of the current cell 
+			const scalar x = C[cellI].x(); 
+
+			//Gets the y component of the current cell 
+			const scalar y = C[cellI].y(); 
+                                                                             
+			const scalar tmp0 = M_PI*x; 
+			const scalar tmp1 = Foam::sin(tmp0); 
+			const scalar tmp2 = M_PI*y; 
+			const scalar tmp3 = Foam::cos(tmp2); 
+			const scalar tmp4 = 0.01*M_PI; 
+			const scalar tmp5 = 0.5*tmp3; 
+			const scalar tmp6 = tmp1*tmp5 + 1; 
+			const scalar tmp7 = Foam::cos(tmp0); 
+			const scalar tmp8 = tmp5*tmp7; 
+			const scalar tmp9 = Foam::sin(tmp2); 
+			const scalar tmp10 = 0.5*tmp9; 
+			const scalar tmp11 = tmp10*tmp7 - 1; 
+			const scalar tmp12 = tmp1*tmp10; 
+			const scalar solution_U_1 = M_PI*(tmp1*tmp3*tmp4 - tmp1 + tmp11*tmp12 + tmp6*tmp8); 
+			const scalar solution_U_2 = M_PI*(tmp11*tmp8 + tmp12*tmp6 - tmp4*tmp7*tmp9); 
+			const scalar solution_U_3 = 0; 
+                                                                            
+
+			const vector solution (solution_U_1, solution_U_2, solution_U_3); 
+			USource[cellI] -= V[cellI]*solution; 
+                                                                            
+		};                                                                         
+	#};                                                                         
+}                                                                             
+
+firstSpecieSource                                                                            
+{                                                                               
+	type            scalarCodedSource;                                                           
+	selectionMode   all;                                                          
+	fields          (Y1);                                                         
+                                                                                
+	// Name of the coded source                                                   
+	name            firstSpecieSource_2;                                                           
+                                                                                
+	codeInclude                                                                   
+	#{                                                                            
+		// Info: Include necessary libraries for calculation                        
+	#};                                                                           
+                                                                                
+	codeCorrect                                                                   
+	#{                                                                            
+		// Info: Apply corrections after the equation has been solved               
+	#};                                                                           
+                                                                                
+	codeConstrain                                                                 
+	#{                                                                            
+		// Info: Constrain values before the equation is solved                     
+	#};                                                                           
+
+	codeAddSup                                                                   
+	#{                                                                          
+		// Gets the cell volumes of the mesh                                       
+		const scalarField& V = mesh_.V();                                          
+                                                                               
+		// Gets the vector containing cell center position of the mesh             
+		const volVectorField& C = mesh().C();                                      
+                                                                               
+		// Gets the equation source term                                           
+		scalarField& Y1Source= eqn.source();                                                    
+                                                                             
+		// Loops over each cell in the domain                                      
+		forAll(Y1Source, cellI)                                                         
+		{                                                                         
+			// Gets the x component of the current cell 
+			const scalar x = C[cellI].x(); 
+
+			//Gets the y component of the current cell 
+			const scalar y = C[cellI].y(); 
+                                                                             
+			const scalar tmp0 = M_PI*(x + y); 
+			const scalar tmp1 = Foam::sin(tmp0); 
+			const scalar tmp2 = 0.040000000000000001*M_PI; 
+			const scalar tmp3 = Foam::cos(tmp0); 
+			const scalar tmp4 = M_PI*x; 
+			const scalar tmp5 = M_PI*y; 
+			const scalar tmp6 = 2*tmp1*tmp3; 
+			const scalar solution_Y1 = M_PI*(tmp2*(tmp1*tmp1) - tmp2*tmp3*tmp3 + tmp6*(0.5*Foam::sin(tmp4)*Foam::cos(tmp5) + 1) - tmp6*(0.5*Foam::sin(tmp5)*Foam::cos(tmp4) - 1)); 
+                                                                            
+			Y1Source[cellI] -= V[cellI]*(solution_Y1);                                                                            
+		};                                                                         
+	#};                                                                         
+}
+
+secondSpecieSource                                                                            
+{                                                                               
+	type            scalarCodedSource;                                                           
+	selectionMode   all;                                                          
+	fields          (Y2);                                                         
+                                                                                
+	// Name of the coded source                                                   
+	name            secondSpecieSource_2;                                                           
+                                                                                
+	codeInclude                                                                   
+	#{                                                                            
+		// Info: Include necessary libraries for calculation                        
+	#};                                                                           
+                                                                                
+	codeCorrect                                                                   
+	#{                                                                            
+		// Info: Apply corrections after the equation has been solved               
+	#};                                                                           
+                                                                                
+	codeConstrain                                                                 
+	#{                                                                            
+		// Info: Constrain values before the equation is solved                     
+	#};                                                                           
+
+	codeAddSup                                                                   
+	#{                                                                          
+		// Gets the cell volumes of the mesh                                       
+		const scalarField& V = mesh_.V();                                          
+                                                                               
+		// Gets the vector containing cell center position of the mesh             
+		const volVectorField& C = mesh().C();                                      
+                                                                               
+		// Gets the equation source term                                           
+		scalarField& Y2Source= eqn.source();                                                    
+                                                                             
+		// Loops over each cell in the domain                                      
+		forAll(Y2Source, cellI)                                                         
+		{                                                                         
+			// Gets the x component of the current cell 
+			const scalar x = C[cellI].x(); 
+
+			//Gets the y component of the current cell 
+			const scalar y = C[cellI].y(); 
+                                                                             
+			const scalar tmp0 = M_PI*(x + y); 
+			const scalar tmp1 = Foam::sin(tmp0); 
+			const scalar tmp2 = 0.040000000000000001*M_PI; 
+			const scalar tmp3 = Foam::cos(tmp0); 
+			const scalar tmp4 = M_PI*x; 
+			const scalar tmp5 = M_PI*y; 
+			const scalar tmp6 = 2*tmp1*tmp3; 
+			const scalar solution_Y2 = M_PI*(-tmp2*tmp1*tmp1 + tmp2*(tmp3*tmp3) - tmp6*(0.5*Foam::sin(tmp4)*Foam::cos(tmp5) + 1) + tmp6*(0.5*Foam::sin(tmp5)*Foam::cos(tmp4) - 1)); 
+                                                                            
+			Y2Source[cellI] -= V[cellI]*(solution_Y2);                                                                            
+		};                                                                         
+	#};                                                                         
+}

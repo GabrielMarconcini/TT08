@@ -1,0 +1,80 @@
+"(right)"                     
+{                                              
+	// Dirichlet boundary                        
+	type        codedFixedValue;                 
+	value       uniform 0;                      
+                                               
+	name        p_dirichlet;                              
+                                               
+	code                                         
+	#{                                           
+                                               
+		// Gets current patch                      
+		const fvPatch& boundaryPatch = patch();    
+                                               
+		// Gets the patch face centres values      
+		const vectorField& Cf = boundaryPatch.Cf(); 
+                                               
+		// Gets the current field                  
+		scalarField& field = *this;                         
+                                               
+		// MMS                                     
+                                             
+		// Loops over the patch                    
+		forAll(Cf, faceI)                          
+		{                                          
+			// Gets the x component of the current cell 
+			const scalar x = Cf[faceI].x(); 
+                                             
+			const scalar p = Foam::cos(M_PI*x) + 1; 
+                                             
+			field[faceI] = p ;                                       
+		}                                          
+
+	#};                                          
+}
+"(left|top|bottom)"                     
+{                                              
+	// Neumann boundary                          
+	type            codedMixed;                  
+	refValue        uniform 0;                  
+	refGradient     uniform 0;                  
+	valueFraction   uniform 0;                   
+                                               
+	name        p_Neumann;                              
+                                               
+	code                                         
+	#{                                           
+                                               
+		// Gets current patch                      
+		const fvPatch& boundaryPatch = patch();    
+                                               
+		// Gets the patch face centres values      
+		const vectorField& Cf = boundaryPatch.Cf(); 
+                                               
+		const vectorField nf = patch().nf();       
+                                               
+		// MMS                                     
+                                               
+                                             
+		// Loops over the patch                    
+		forAll(this->patch(), faceI)               
+		{                                          
+			// Gets the x component of the current cell 
+			const scalar x = Cf[faceI].x(); 
+                                             
+			const scalar dp_dx = -M_PI*Foam::sin(M_PI*x); 
+			const scalar dp_dy = 0; 
+			const scalar dp_dz = 0; 
+                                             
+
+			const vector gradp (dp_dx, dp_dy, dp_dz);   
+
+			const scalar normalGradient = gradp & nf[faceI] ; 
+			this->refGrad()[faceI] = normalGradient; 
+			this->valueFraction()[faceI] = scalar(0); 
+                                             
+		}                                          
+
+	#};                                          
+}

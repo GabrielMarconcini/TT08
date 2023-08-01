@@ -1,0 +1,88 @@
+"(left)"                     
+{                                              
+	// Dirichlet boundary                        
+	type        codedFixedValue;                 
+	value       uniform 0;                      
+                                               
+	name        Y2_dirichlet;                              
+                                               
+	code                                         
+	#{                                           
+                                               
+		// Gets current patch                      
+		const fvPatch& boundaryPatch = patch();    
+                                               
+		// Gets the patch face centres values      
+		const vectorField& Cf = boundaryPatch.Cf(); 
+                                               
+		// Gets the current field                  
+		scalarField& field = *this;                         
+                                               
+		// MMS                                     
+                                             
+		// Loops over the patch                    
+		forAll(Cf, faceI)                          
+		{                                          
+			// Gets the x component of the current cell 
+			const scalar x = Cf[faceI].x(); 
+
+			//Gets the y component of the current cell 
+			const scalar y = Cf[faceI].y(); 
+                                              
+			const scalar Y2 = Foam::pow(Foam::cos(M_PI*(x + y)), 2); 
+                                             
+			field[faceI] = Y2 ;                                       
+		}                                          
+
+	#};                                          
+}
+"(right|top|bottom)"                     
+{                                              
+	// Neumann boundary                          
+	type            codedMixed;                  
+	refValue        uniform 0;                  
+	refGradient     uniform 0;                  
+	valueFraction   uniform 0;                   
+                                               
+	name        Y2_Neumann;                              
+                                               
+	code                                         
+	#{                                           
+                                               
+		// Gets current patch                      
+		const fvPatch& boundaryPatch = patch();    
+                                               
+		// Gets the patch face centres values      
+		const vectorField& Cf = boundaryPatch.Cf(); 
+                                               
+		const vectorField nf = patch().nf();       
+                                               
+		// MMS                                     
+                                               
+                                             
+		// Loops over the patch                    
+		forAll(this->patch(), faceI)               
+		{                                          
+			// Gets the x component of the current cell 
+			const scalar x = Cf[faceI].x(); 
+
+			//Gets the y component of the current cell 
+			const scalar y = Cf[faceI].y(); 
+                                              
+			const scalar tmp0 = M_PI*(x + y); 
+			const scalar tmp1 = -2*M_PI*Foam::sin(tmp0)*Foam::cos(tmp0); 
+			const scalar dY2_dx = tmp1; 
+			const scalar dY2_dy = tmp1; 
+			const scalar dY2_dz = 0; 
+                                             
+
+			const vector gradY2 (dY2_dx, dY2_dy, dY2_dz);   
+
+			const scalar normalGradient = gradY2 & nf[faceI] ; 
+			this->refGrad()[faceI] = normalGradient; 
+			this->valueFraction()[faceI] = scalar(0); 
+                                             
+		}                                          
+
+	#};                                          
+}
