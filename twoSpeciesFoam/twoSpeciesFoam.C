@@ -30,7 +30,8 @@ Group
     grpIncompressibleSolvers
 
 Description
-    Steady-state solver for two species incompressible, turbulent flows.
+    Steady-state solver for the tansport of the mass fraction
+    of two species for incompressible, turbulent flows.
 
 \*---------------------------------------------------------------------------*/
 
