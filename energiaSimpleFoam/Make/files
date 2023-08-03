@@ -1,3 +1,0 @@
-energiaSimpleFoam.C
-
-EXE = $(FOAM_APPBIN)/energiaSimpleFoam

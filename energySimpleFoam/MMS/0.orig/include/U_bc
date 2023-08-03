@@ -1,0 +1,108 @@
+"(top|left|bottom)"                     
+{                                              
+	// Dirichlet boundary                        
+	type        codedFixedValue;                 
+	value       uniform (0 0 0);                      
+                                               
+	name        U_dirichlet;                              
+                                               
+	code                                         
+	#{                                           
+                                               
+		// Gets current patch                      
+		const fvPatch& boundaryPatch = patch();    
+                                               
+		// Gets the patch face centres values      
+		const vectorField& Cf = boundaryPatch.Cf(); 
+                                               
+		// Gets the current field                  
+		vectorField& field = *this;                         
+                                               
+		// MMS                                     
+                                             
+		// Loops over the patch                    
+		forAll(Cf, faceI)                          
+		{                                          
+			// Gets the x component of the current cell 
+			const scalar x = Cf[faceI].x(); 
+
+			//Gets the y component of the current cell 
+			const scalar y = Cf[faceI].y(); 
+                                              
+			const scalar tmp0 = 0.5*tanh(2*M_PI*(x*x + y*y)); 
+			const scalar U_1 = tmp0*y + 1; 
+			const scalar U_2 = -tmp0*x + 1; 
+			const scalar U_3 = 0; 
+                                             
+			
+			const vector U( U_1, U_2, U_3 ); 
+			field[faceI] = U; 
+                                       
+		}                                          
+
+	#};                                          
+}
+"(right)"                     
+{                                              
+	// Neumann boundary                          
+	type            codedMixed;                  
+	refValue        uniform (0 0 0);                  
+	refGradient     uniform (0 0 0);                  
+	valueFraction   uniform 0;                   
+                                               
+	name        U_Neumann;                              
+                                               
+	code                                         
+	#{                                           
+                                               
+		// Gets current patch                      
+		const fvPatch& boundaryPatch = patch();    
+                                               
+		// Gets the patch face centres values      
+		const vectorField& Cf = boundaryPatch.Cf(); 
+                                               
+		const vectorField nf = patch().nf();       
+                                               
+		// MMS                                     
+                                               
+                                             
+		// Loops over the patch                    
+		forAll(this->patch(), faceI)               
+		{                                          
+			// Gets the x component of the current cell 
+			const scalar x = Cf[faceI].x(); 
+
+			//Gets the y component of the current cell 
+			const scalar y = Cf[faceI].y(); 
+                                              
+			const scalar tmp0_0 = y*y; 
+			const scalar tmp0_1 = tanh(2*M_PI*(tmp0_0 + x*x)); 
+			const scalar tmp0_2 = 2.0*M_PI*(-1 + tmp0_1*tmp0_1); 
+			const scalar dU1_dx = -tmp0_2*x*y; 
+			const scalar dU1_dy = -tmp0_0*tmp0_2 + 0.5*tmp0_1; 
+			const scalar dU1_dz = 0; 
+			const scalar tmp1_0 = x*x; 
+			const scalar tmp1_1 = tanh(2*M_PI*(tmp1_0 + y*y)); 
+			const scalar tmp1_2 = 2.0*M_PI*(-1 + tmp1_1*tmp1_1); 
+			const scalar dU2_dx = tmp1_0*tmp1_2 - 0.5*tmp1_1; 
+			const scalar dU2_dy = tmp1_2*x*y; 
+			const scalar dU2_dz = 0; 
+			const scalar dU3_dx = 0; 
+			const scalar dU3_dy = 0; 
+			const scalar dU3_dz = 0; 
+                                             
+
+			const scalar normal_1 = vector(dU1_dx, dU1_dy, dU1_dz) & nf[faceI] ; 
+
+			const scalar normal_2 = vector(dU2_dx, dU2_dy, dU2_dz) & nf[faceI] ; 
+
+			const scalar normal_3 = vector(dU3_dx, dU3_dy, dU3_dz) & nf[faceI] ; 
+
+			const vector normalGradient (normal_1, normal_2, normal_3); 
+			this->refGrad()[faceI] = normalGradient; 
+			this->valueFraction()[faceI] = scalar(0); 
+                                             
+		}                                          
+
+	#};                                          
+}

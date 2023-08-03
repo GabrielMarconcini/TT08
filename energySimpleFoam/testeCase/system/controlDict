@@ -1,0 +1,86 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2106                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     energiaSimpleFoam;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         100000;
+
+deltaT          1;
+
+writeControl    timeStep;
+
+writeInterval   100;
+
+purgeWrite      2;
+
+writeFormat     ascii;
+
+writePrecision  8;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   8;
+
+runTimeModifiable true;
+
+/*
+functions
+{
+    
+    heatTransferCoeff1
+    {
+        // Mandatory entries (unmodifiable)
+        type            heatTransferCoeff;
+        libs            (fieldFunctionObjects);
+        
+        // Mandatory (inherited) entries
+        field           T;
+        patches         (bottom);
+        htcModel        fixedReferenceTemperature;
+        
+        L		1.0;
+        kappa		1.0;
+        TRef	        400;
+        //UInf            (0.01 0 0);
+        //Cp              CpInf;
+        //CpInf           1000;
+        //rho             rhoInf;
+        //rhoInf          1.2;
+    }
+    
+    wallHeatFlux1
+    {
+        // Mandatory entries (unmodifiable)
+        type            wallHeatFlux;
+        libs            (fieldFunctionObjects);
+
+        // Optional entries (runtime modifiable)
+        patches     (bottom);    
+    }
+}*/
+ 
+
+
+
+// ************************************************************************* //

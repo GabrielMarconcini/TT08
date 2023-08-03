@@ -1,0 +1,87 @@
+"(top|left|bottom)"                     
+{                                              
+	// Dirichlet boundary                        
+	type        codedFixedValue;                 
+	value       uniform 0;                      
+                                               
+	name        T_dirichlet;                              
+                                               
+	code                                         
+	#{                                           
+                                               
+		// Gets current patch                      
+		const fvPatch& boundaryPatch = patch();    
+                                               
+		// Gets the patch face centres values      
+		const vectorField& Cf = boundaryPatch.Cf(); 
+                                               
+		// Gets the current field                  
+		scalarField& field = *this;                         
+                                               
+		// MMS                                     
+                                             
+		// Loops over the patch                    
+		forAll(Cf, faceI)                          
+		{                                          
+			// Gets the x component of the current cell 
+			const scalar x = Cf[faceI].x(); 
+
+			//Gets the y component of the current cell 
+			const scalar y = Cf[faceI].y(); 
+                                              
+			const scalar T = 50*(4 + 3*tanh(x*x + y*y)); 
+                                             
+			field[faceI] = T ;                                       
+		}                                          
+
+	#};                                          
+}
+"(right)"                     
+{                                              
+	// Neumann boundary                          
+	type            codedMixed;                  
+	refValue        uniform 0;                  
+	refGradient     uniform 0;                  
+	valueFraction   uniform 0;                   
+                                               
+	name        T_Neumann;                              
+                                               
+	code                                         
+	#{                                           
+                                               
+		// Gets current patch                      
+		const fvPatch& boundaryPatch = patch();    
+                                               
+		// Gets the patch face centres values      
+		const vectorField& Cf = boundaryPatch.Cf(); 
+                                               
+		const vectorField nf = patch().nf();       
+                                               
+		// MMS                                     
+                                               
+                                             
+		// Loops over the patch                    
+		forAll(this->patch(), faceI)               
+		{                                          
+			// Gets the x component of the current cell 
+			const scalar x = Cf[faceI].x(); 
+
+			//Gets the y component of the current cell 
+			const scalar y = Cf[faceI].y(); 
+                                              
+			const scalar tmp0 = -300 + 300*Foam::pow(tanh(x*x + y*y), 2); 
+			const scalar dT_dx = -tmp0*x; 
+			const scalar dT_dy = -tmp0*y; 
+			const scalar dT_dz = 0; 
+                                             
+
+			const vector gradT (dT_dx, dT_dy, dT_dz);   
+
+			const scalar normalGradient = gradT & nf[faceI] ; 
+			this->refGrad()[faceI] = normalGradient; 
+			this->valueFraction()[faceI] = scalar(0); 
+                                             
+		}                                          
+
+	#};                                          
+}

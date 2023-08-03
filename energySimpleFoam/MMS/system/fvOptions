@@ -1,0 +1,160 @@
+/*--------------------------------*- C++ -*----------------------------------*\ 
+| =========                 |                                                |  
+| \      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           | 
+|  \    /   O peration     | Version:  v2012                                 | 
+|   \  /    A nd           | Website:  www.openfoam.com                      | 
+|    \/     M anipulation  |                                                 | 
+\*---------------------------------------------------------------------------*/ 
+FoamFile                                                                        
+{                                                                               
+    version     2.0;                                                            
+    format      ascii;                                                          
+    class       dictionary;                                                     
+    object      fvOptions;                                                      
+}                                                                               
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * // 
+
+momentumSource                                                                            
+{                                                                               
+	type            vectorCodedSource;                                                           
+	selectionMode   all;                                                          
+	fields          (U);                                                         
+                                                                                
+	// Name of the coded source                                                   
+	name            momentumSource_2;                                                           
+                                                                                
+	codeInclude                                                                   
+	#{                                                                            
+		// Info: Include necessary libraries for calculation                        
+	#};                                                                           
+                                                                                
+	codeCorrect                                                                   
+	#{                                                                            
+		// Info: Apply corrections after the equation has been solved               
+	#};                                                                           
+                                                                                
+	codeConstrain                                                                 
+	#{                                                                            
+		// Info: Constrain values before the equation is solved                     
+	#};                                                                           
+
+	codeAddSup                                                                   
+	#{                                                                          
+		// Gets the cell volumes of the mesh                                       
+		const scalarField& V = mesh_.V();                                          
+                                                                               
+		// Gets the vector containing cell center position of the mesh             
+		const volVectorField& C = mesh().C();                                      
+                                                                               
+		// Gets the equation source term                                           
+		vectorField& USource= eqn.source();                                                    
+                                                                             
+		// Loops over each cell in the domain                                      
+		forAll(USource, cellI)                                                         
+		{                                                                         
+			// Gets the x component of the current cell 
+			const scalar x = C[cellI].x(); 
+
+			//Gets the y component of the current cell 
+			const scalar y = C[cellI].y(); 
+                                                                             
+			const scalar tmp0 = x*x; 
+			const scalar tmp1 = 2*M_PI; 
+			const scalar tmp2 = y*y; 
+			const scalar tmp3 = tanh(tmp1*(tmp0 + tmp2)); 
+			const scalar tmp4 = -1 + tmp3*tmp3; 
+			const scalar tmp5 = Foam::pow(M_PI, 2); 
+			const scalar tmp6 = 8.0*tmp3*tmp4*tmp5; 
+			const scalar tmp7 = 0.5*tmp3; 
+			const scalar tmp8 = tmp7*y + 1; 
+			const scalar tmp9 = M_PI*tmp4; 
+			const scalar tmp10 = 2.0*tmp9; 
+			const scalar tmp11 = tmp10*x*y; 
+			const scalar tmp12 = tmp7*x - 1; 
+			const scalar solution_U_1 = -tmp0*tmp6*y - tmp11*tmp8 - tmp12*(-tmp10*tmp2 + 0.5*tmp3) + 4.0*M_PI*tmp4*y - tmp6*y*y*y - 4*M_PI*x*(Foam::pow(tanh(tmp0*tmp1), 2) - 1); 
+			const scalar solution_U_2 = -tmp11*tmp12 + 8.0*tmp2*tmp3*tmp4*tmp5*x + 8.0*tmp3*tmp4*tmp5*(x*x*x) - tmp8*(-2.0*M_PI*tmp0*tmp4 + tmp7) - 4.0*tmp9*x; 
+			const scalar solution_U_3 = 0; 
+                                                                            
+
+			const vector solution (solution_U_1, solution_U_2, solution_U_3); 
+			USource[cellI] -= V[cellI]*solution; 
+                                                                            
+		};                                                                         
+	#};                                                                         
+}                                                                             
+
+/*--------------------------------*- C++ -*----------------------------------*\ 
+| =========                 |                                                |  
+| \      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           | 
+|  \    /   O peration     | Version:  v2012                                 | 
+|   \  /    A nd           | Website:  www.openfoam.com                      | 
+|    \/     M anipulation  |                                                 | 
+\*---------------------------------------------------------------------------*/ 
+FoamFile                                                                        
+{                                                                               
+    version     2.0;                                                            
+    format      ascii;                                                          
+    class       dictionary;                                                     
+    object      fvOptions;                                                      
+}                                                                               
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * // 
+
+sourceTerm                                                                            
+{                                                                               
+	type            scalarCodedSource;                                                           
+	selectionMode   all;                                                          
+	fields          (T);                                                         
+                                                                                
+	// Name of the coded source                                                   
+	name            sourceTerm_2;                                                           
+                                                                                
+	codeInclude                                                                   
+	#{                                                                            
+		// Info: Include necessary libraries for calculation                        
+	#};                                                                           
+                                                                                
+	codeCorrect                                                                   
+	#{                                                                            
+		// Info: Apply corrections after the equation has been solved               
+	#};                                                                           
+                                                                                
+	codeConstrain                                                                 
+	#{                                                                            
+		// Info: Constrain values before the equation is solved                     
+	#};                                                                           
+
+	codeAddSup                                                                   
+	#{                                                                          
+		// Gets the cell volumes of the mesh                                       
+		const scalarField& V = mesh_.V();                                          
+                                                                               
+		// Gets the vector containing cell center position of the mesh             
+		const volVectorField& C = mesh().C();                                      
+                                                                               
+		// Gets the equation source term                                           
+		scalarField& TSource= eqn.source();                                                    
+                                                                             
+		// Loops over each cell in the domain                                      
+		forAll(TSource, cellI)                                                         
+		{                                                                         
+			// Gets the x component of the current cell 
+			const scalar x = C[cellI].x(); 
+
+			//Gets the y component of the current cell 
+			const scalar y = C[cellI].y(); 
+                                                                             
+			const scalar tmp0 = x*x; 
+			const scalar tmp1 = y*y; 
+			const scalar tmp2 = tmp0 + tmp1; 
+			const scalar tmp3 = tanh(tmp2); 
+			const scalar tmp4 = tmp3*tmp3; 
+			const scalar tmp5 = tmp4 - 1; 
+			const scalar tmp6 = 4*tmp3*tmp5; 
+			const scalar tmp7 = 0.5*tanh(2*M_PI*tmp2); 
+			const scalar solution_T = -300*tmp0*tmp6 - 300*tmp1*tmp6 + 600*tmp4 - 300*tmp5*x*(tmp7*y + 1) + 300*tmp5*y*(tmp7*x - 1) - 600; 
+                                                                            
+			TSource[cellI] -= V[cellI]*(solution_T);                                                                            
+		};                                                                         
+	#};                                                                         
+}                                                                             
+
